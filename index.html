@@ -1,0 +1,643 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Animal Based Coach — your diet, built from your data</title>
+<meta name="description" content="An AI nutrition coach that builds your personalized animal-based diet, reads your real data — sleep, HRV, weight — and sharpens the plan every week. Free to download. Free plan today.">
+<meta name="apple-itunes-app" content="app-id=6790187451">
+<meta name="theme-color" content="#0C0B0A">
+<meta property="og:title" content="Animal Based Coach — results on autopilot">
+<meta property="og:description" content="A personalized animal-based diet that proves it's working in your own numbers. Free to download. Free plan today.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230C0B0A'/%3E%3Ctext x='32' y='45' font-family='Arial,sans-serif' font-size='32' font-weight='900' fill='%23F2A54B' text-anchor='middle'%3E%CE%9B%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
+<style>
+/* ═══ THE APP'S OWN TOKENS (src/theme.ts, dark palette — byte-identical) ═══ */
+:root{
+  --bg:#0C0B0A; --bg2:#110F0D; --surface:rgba(255,244,234,.05); --card:#1A1512; --elevated:#241D18;
+  --line:rgba(255,238,228,.08); --line2:rgba(255,238,228,.15);
+  --lift:rgba(255,247,238,.13); --lift2:rgba(255,247,238,.18); --liftmid:rgba(255,247,238,.16);
+  --text:#F7F3EE; --textwarm:#FBE9E3; --dim:#A99E93; --faint:#6B625A;
+  --accent:#FF5630; --on-accent:#1C1613; --accent2:#F2A54B; --accent-dim:rgba(255,86,48,.14);
+  --gold:#E7B15C; --gold-dim:rgba(231,177,92,.33);
+  --success:#48C98D; --success-dim:rgba(72,201,141,.14); --blue:#6BA6F5; --danger:#FF5A5F;
+  --amber:#FFB23A; --chart-red:#FF6B6B; --chart-blue:#5AA2FF; --purple:#B98CFF; --mint:#48C98D;
+  --meal-b:#EAB44C; --meal-l:#EC6A88; --meal-d:#8FA6F2;
+  --ember:linear-gradient(135deg,#FF9244,#FF5630,#F5352B);
+  --hero-grad:linear-gradient(135deg,#2A211B,#191410);
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:20px; --r-xxl:26px;
+  --f:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:var(--f);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;overflow-x:hidden}
+.wrap{max-width:1140px;margin:0 auto;padding:0 24px}
+a{color:inherit}
+
+/* ── shared app components ─────────────────────────────── */
+.appcard{background:var(--card);border:1px solid var(--line);border-top:1px solid var(--lift);border-radius:var(--r-xxl);padding:22px}
+.eyebrow{color:var(--accent2);font-size:11px;font-weight:900;letter-spacing:1.6px;text-transform:uppercase}
+.seclabel{color:var(--dim);font-size:11px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase}
+.ember-btn{display:inline-flex;align-items:center;gap:8px;background:var(--ember);color:var(--on-accent);font-weight:800;font-size:15px;letter-spacing:.3px;padding:16px 28px;border-radius:999px;text-decoration:none;box-shadow:0 6px 18px rgba(255,86,48,.42);transition:transform .16s ease}
+.ember-btn:hover{transform:scale(1.04)}
+.ember-btn svg{width:15px;height:15px}
+.ghost-btn{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.05);border:1px solid var(--line2);color:var(--text);font-weight:700;font-size:15px;padding:15px 26px;border-radius:999px;text-decoration:none;transition:background .16s}
+.ghost-btn:hover{background:rgba(255,255,255,.09)}
+.pill{display:inline-flex;align-items:center;gap:7px;background:var(--accent-dim);border:1px solid rgba(242,165,75,.35);border-radius:999px;padding:7px 14px;color:var(--accent2);font-size:13px;font-weight:700}
+
+/* ── nav ─────────────────────────────── */
+nav{position:sticky;top:0;z-index:60;background:rgba(12,11,10,.86);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav-in{display:flex;align-items:center;justify-content:space-between;height:66px}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none}
+.avatar{width:34px;height:34px;border-radius:50%;background:var(--elevated);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-weight:900;font-size:15px}
+.brand b{font-size:16px;font-weight:800;letter-spacing:-.2px}
+.nav-cta{background:var(--ember);color:var(--on-accent);text-decoration:none;font-weight:800;font-size:13px;padding:10px 20px;border-radius:999px;box-shadow:0 4px 14px rgba(255,86,48,.35)}
+
+/* ── hero ─────────────────────────────── */
+.hero{padding:84px 0 40px;position:relative}
+.hero::before{content:"";position:absolute;top:-200px;left:0;right:0;margin:0 auto;max-width:900px;height:600px;background:radial-gradient(ellipse,rgba(255,86,48,.10),transparent 62%);pointer-events:none}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center;position:relative}
+h1{font-weight:800;font-size:clamp(38px,5vw,62px);line-height:1.04;letter-spacing:-1.8px;color:var(--textwarm)}
+h1 .a2{color:var(--accent2)}
+.hero-sub{margin:22px 0 0;font-size:17px;line-height:1.65;color:var(--dim);max-width:520px}
+.hero-sub b{color:var(--text);font-weight:700}
+.cta-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:30px}
+.trust{margin-top:18px;color:var(--faint);font-size:12px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase}
+.store-note{display:flex;align-items:center;gap:8px;color:var(--dim);font-size:13px;font-weight:600}
+.store-note svg{width:15px;height:15px;fill:var(--dim)}
+
+/* ── the phone (app-faithful) ─────────────────────────────── */
+.phone{width:340px;background:#000;border-radius:52px;padding:11px;box-shadow:0 30px 90px rgba(0,0,0,.65),0 0 0 1px #2A241E,0 2px 0 1px rgba(255,247,238,.07) inset;position:relative;margin:0 auto}
+.screen{background:var(--bg);border-radius:42px;overflow:hidden;position:relative;border:1px solid #1C1712}
+.island{position:absolute;top:11px;left:50%;transform:translateX(-50%);width:96px;height:28px;background:#000;border-radius:16px;z-index:5}
+.stat{display:flex;justify-content:space-between;align-items:center;padding:16px 26px 4px;font-size:13px;font-weight:700}
+.stat .sig{display:flex;gap:5px;align-items:center}
+.stat .sig i{display:block;width:16px;height:9px;border:1px solid var(--dim);border-radius:2.5px;position:relative}
+.stat .sig i::after{content:"";position:absolute;inset:1.5px;right:4px;background:var(--dim);border-radius:1px}
+.s-head{display:flex;align-items:flex-end;justify-content:space-between;padding:10px 20px 8px}
+.s-title{font-size:26px;font-weight:800;letter-spacing:-.6px}
+.s-sub{color:var(--dim);font-size:12px;margin-top:1px}
+.s-ava{width:27px;height:27px;border-radius:50%;background:var(--elevated);border:1px solid var(--line2);display:flex;align-items:center;justify-content:center;color:var(--accent2);font-weight:900;font-size:11px}
+.s-body{padding:4px 14px 0;display:flex;flex-direction:column;gap:9px}
+/* trial banner */
+.t-banner{display:flex;align-items:center;gap:7px;background:var(--accent-dim);border:1px solid rgba(242,165,75,.35);border-radius:999px;padding:7px 13px}
+.t-banner .spark{color:var(--accent2);font-size:11px}
+.t-banner b{flex:1;color:var(--accent2);font-size:11.5px;font-weight:700}
+.t-banner u{color:var(--accent2);font-size:10px;font-weight:800}
+/* streak hero card */
+.h-card{display:flex;align-items:center;gap:14px;background:var(--hero-grad);border:1px solid var(--line2);border-top-color:var(--lift2);border-radius:var(--r-xxl);padding:13px 15px;position:relative;overflow:hidden}
+.ring{width:56px;height:56px;border-radius:50%;background:conic-gradient(#FF5630 0 74%,rgba(255,255,255,.09) 74% 100%);display:flex;align-items:center;justify-content:center;position:relative;flex:none}
+.ring::before{content:"";position:absolute;inset:6.5px;border-radius:50%;background:#221B16}
+.ring div{position:relative;text-align:center;line-height:1}
+.ring b{display:block;font-size:18px;font-weight:800}
+.ring span{font-size:7.5px;font-weight:800;letter-spacing:1.6px;color:var(--accent2)}
+.h-right{flex:1}
+.h-right b{display:block;font-size:15px;font-weight:800}
+.h-right p{color:var(--dim);font-size:10.5px;margin-top:2px}
+.mini-cta{display:inline-flex;align-items:center;gap:5px;background:var(--ember);color:var(--on-accent);font-size:11.5px;font-weight:800;border-radius:999px;padding:6px 14px;margin-top:8px;box-shadow:0 3px 10px rgba(255,86,48,.4)}
+/* action card */
+.a-card{background:var(--card);border:1px solid var(--line);border-top-color:var(--lift);border-radius:var(--r-xxl);padding:14px}
+.a-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.a-left{display:flex;align-items:center;gap:7px}
+.a-title{font-size:15px;font-weight:800;letter-spacing:-.3px}
+.note-chip{display:inline-flex;align-items:center;gap:4px;background:var(--accent-dim);border-radius:999px;padding:4px 9px;color:var(--textwarm);font-size:10px;font-weight:700}
+.note-chip svg{width:10px;height:10px;color:var(--accent)}
+.adjust{display:inline-flex;align-items:center;gap:5px;background:var(--accent-dim);border-radius:999px;padding:4px 10px;color:var(--accent2);font-size:11px;font-weight:800}.adjust svg{width:11px;height:11px}
+.meals{display:flex;gap:7px}
+.meal{flex:1;border:1px solid var(--line);border-top:3px solid;border-radius:var(--r-lg);padding:8px 7px}
+.meal.b{border-top-color:var(--meal-b);background:rgba(234,180,76,.07)}
+.meal.l{border-top-color:var(--meal-l);background:rgba(236,106,136,.07)}
+.meal.d{border-top-color:var(--meal-d);background:rgba(143,166,242,.07)}
+.meal h5{font-size:8.5px;font-weight:900;letter-spacing:1px;text-align:center;margin-bottom:6px}
+.meal.b h5{color:var(--meal-b)}.meal.l h5{color:var(--meal-l)}.meal.d h5{color:var(--meal-d)}
+.mi{display:flex;gap:4px;align-items:flex-start;margin-bottom:3px}
+.mi i{width:3px;height:3px;border-radius:50%;margin-top:5px;flex:none}
+.meal.b .mi i{background:var(--meal-b)}.meal.l .mi i{background:var(--meal-l)}.meal.d .mi i{background:var(--meal-d)}
+.mi span{font-size:9.5px;line-height:1.35;color:var(--text)}
+.a-div{height:1px;background:var(--line2);margin:10px 0}
+.ess{display:flex;gap:7px}
+.ess div{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:var(--r-lg);padding:8px 5px;text-align:center}
+.ess .ic{width:22px;height:22px;border-radius:50%;margin:0 auto 4px;display:flex;align-items:center;justify-content:center}.ess .ic svg{width:11px;height:11px}
+.ess b{display:block;font-size:9.5px;font-weight:700}
+.ess span{font-size:8.5px;color:var(--dim);line-height:1.3;display:block;margin-top:1px}
+.s-disc{color:var(--faint);font-size:9px;text-align:center;margin-top:9px}
+/* progress card */
+.p-card{background:var(--card);border:1px solid var(--line);border-top-color:var(--lift);border-radius:var(--r-xxl);padding:14px 12px 12px}
+.p-head{display:flex;justify-content:space-between;align-items:center;padding:0 3px}
+.p-head b{font-size:15px;font-weight:800}
+.p-head span{display:block;color:var(--faint);font-size:9.5px;font-weight:600}
+.p-head .chev{color:var(--faint);font-size:14px}
+.p-row{display:flex;margin-top:12px}
+.p-tile{flex:1;text-align:center;padding:0 4px}
+.p-tile + .p-tile{border-left:1px solid var(--line)}
+.p-ic{width:28px;height:28px;border-radius:50%;margin:0 auto 5px;display:flex;align-items:center;justify-content:center}.p-ic svg{width:13px;height:13px}
+.p-val{font-size:16px;font-weight:800;letter-spacing:-.5px}
+.p-lbl{color:var(--dim);font-size:8px;font-weight:800;letter-spacing:.8px;margin-top:2px}
+.p-dlt{font-size:9.5px;font-weight:700;margin-top:1px}
+.p-why{color:var(--dim);font-size:8.5px;line-height:1.3;margin-top:4px}
+/* tab bar */
+.tabs{display:flex;border-top:1px solid var(--line);background:var(--bg2);padding:9px 6px 22px;margin-top:10px}
+.tab{flex:1;text-align:center;color:var(--faint);font-size:9px;font-weight:600}
+.tab svg{width:20px;height:20px;fill:currentColor;margin-bottom:2px}
+.tab.on{color:var(--accent2)}
+/* coach + verdict phone variants */
+.chat{display:flex;flex-direction:column;gap:11px;padding:6px 14px 0}
+.c-user{align-self:flex-end;max-width:86%;background:var(--elevated);border:1px solid var(--line2);border-radius:var(--r-xl);border-bottom-right-radius:6px;padding:9px 13px;font-size:12px;line-height:1.5}
+.c-ai{display:flex;gap:8px;align-items:flex-start}
+.c-spark{width:22px;height:22px;border-radius:50%;background:var(--ember);flex:none;display:flex;align-items:center;justify-content:center;color:var(--on-accent);font-size:10px;font-weight:900;margin-top:2px}
+.c-ai p{font-size:12px;line-height:1.6;color:var(--text)}
+.c-ai p b{font-weight:700}
+.typing{display:flex;gap:4px;padding:4px 0 0 30px}
+.typing i{width:6px;height:6px;border-radius:50%;background:var(--faint);animation:ty 1.2s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes ty{0%,60%,100%{opacity:.25;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+.composer{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line2);border-radius:var(--r-xxl);padding:8px 8px 8px 14px;margin:12px 12px 0}
+.composer .ph{flex:1;color:var(--faint);font-size:12px}
+.send{width:30px;height:30px;border-radius:50%;background:var(--ember);display:flex;align-items:center;justify-content:center;color:var(--on-accent);font-weight:900;font-size:13px}
+.v-eyebrow{color:var(--accent2);font-size:9.5px;font-weight:900;letter-spacing:1.6px}
+.v-line{font-size:14.5px;font-weight:800;line-height:1.35;margin-top:6px}
+.movers{display:flex;gap:8px;margin-top:11px;justify-content:center}
+.mover{width:76px;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:var(--r-lg);padding:9px 6px;text-align:center}
+.mover b{display:block;font-size:14px;font-weight:800}
+.mover span{display:block;font-size:8px;font-weight:800;letter-spacing:.8px;color:var(--dim);margin-top:2px}
+.mover i{display:block;font-style:normal;font-size:9.5px;font-weight:700;margin-top:1px}
+.exp-chip{display:flex;align-items:center;gap:7px;background:rgba(185,140,255,.10);border:1px solid rgba(185,140,255,.3);border-radius:var(--r-md);padding:8px 11px;margin-top:11px}
+.exp-chip svg{width:13px;height:13px;color:var(--purple);flex:none}
+.exp-chip b{flex:1;font-size:10.5px;font-weight:700;color:var(--text)}
+.exp-chip span{font-size:9.5px;color:var(--purple);font-weight:800}
+.noise{margin-top:10px;border-top:1px solid var(--line);padding-top:9px}
+.noise div{display:flex;justify-content:space-between;padding:3px 0;font-size:10.5px}
+.noise span{color:var(--dim)}
+.noise b.real{color:var(--success);font-weight:800}
+.noise b.ns{color:var(--faint);font-weight:800}
+
+/* ── sections ─────────────────────────────── */
+section{padding:96px 0}
+.sec-head{max-width:680px;margin:0 auto 56px;text-align:center}
+.sec-head .eyebrow{display:block;margin-bottom:14px}
+h2{font-weight:800;font-size:clamp(28px,4vw,44px);letter-spacing:-1.2px;line-height:1.12;color:var(--textwarm)}
+.sec-sub{margin-top:14px;color:var(--dim);font-size:16px;line-height:1.65}
+
+/* big3 */
+.three{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.b3{padding:30px 26px}
+.b3 .ic{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;margin-bottom:16px}.b3 .ic svg{width:20px;height:20px}
+.b3 h3{font-size:20px;font-weight:800;letter-spacing:-.3px}
+.b3 p{margin-top:8px;color:var(--dim);font-size:14.5px;line-height:1.6}
+
+/* feature rows */
+.feat{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center}
+.feat + .feat{margin-top:110px}
+.feat .copy .eyebrow{display:block;margin-bottom:12px}
+.feat h3{font-size:clamp(24px,3vw,34px);font-weight:800;letter-spacing:-.8px;line-height:1.15;color:var(--textwarm)}
+.feat p{margin-top:14px;color:var(--dim);font-size:15.5px;line-height:1.7;max-width:440px}
+.feat p b{color:var(--text)}
+.ticks{margin-top:20px;display:flex;flex-direction:column;gap:11px}
+.tick{display:flex;gap:10px;align-items:flex-start;font-size:14.5px;color:var(--text);font-weight:600}
+.tick svg{width:17px;height:17px;flex:none;margin-top:1px}
+.feat.flip .copy{order:2}
+.feat .phone{width:300px}
+
+/* health chips */
+.metrics{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:760px;margin:44px auto 0}
+.metric{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-top-color:var(--lift);border-radius:999px;padding:10px 18px;font-size:13.5px;font-weight:700}
+.metric svg{width:15px;height:15px;flex:none}
+
+/* receipt */
+.receipt-card{max-width:640px;margin:0 auto;padding:28px}
+.r-row{display:flex;justify-content:space-between;align-items:center;padding:13px 2px;border-bottom:1px solid var(--line)}
+.r-row span{color:var(--dim);font-size:15px}
+.r-row b{font-size:15.5px;font-weight:800;color:var(--gold)}
+.r-row.last{border-bottom:none;background:var(--accent-dim);border:1px solid rgba(242,165,75,.35);border-radius:var(--r-lg);padding:15px 16px;margin-top:12px}
+.r-row.last span{color:var(--text);font-weight:800;font-size:15.5px}
+.r-row.last b{color:var(--success);font-size:15.5px}
+.r-foot{margin-top:14px;color:var(--faint);font-size:12px;text-align:center}
+
+/* pricing */
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:18px;max-width:880px;margin:0 auto}
+.plan{padding:34px 30px;position:relative}
+.plan.pro{border:1px solid rgba(242,165,75,.5);border-top-color:var(--accent2)}
+.plan .tag{position:absolute;top:-13px;left:28px}
+.plan h3{font-size:12px;font-weight:900;letter-spacing:2px;color:var(--accent2)}
+.price{font-size:42px;font-weight:800;letter-spacing:-1.5px;margin:12px 0 2px}
+.price span{font-size:15px;font-weight:600;color:var(--dim);letter-spacing:0}
+.per{color:var(--dim);font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:20px}
+.plan ul{list-style:none;display:flex;flex-direction:column;gap:11px}
+.plan li{display:flex;gap:10px;font-size:14.5px;color:var(--text);line-height:1.5}
+.plan li svg{width:17px;height:17px;flex:none;margin-top:2px}
+.plan .fine{margin-top:20px;color:var(--faint);font-size:11.5px;line-height:1.6}
+.plan .ember-btn{margin-top:22px;width:100%;justify-content:center}
+.plan .ghost-btn{margin-top:22px;width:100%;justify-content:center}
+
+/* faq */
+.faq{max-width:680px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+details{background:var(--card);border:1px solid var(--line);border-top-color:var(--lift);border-radius:var(--r-xl);padding:0 20px}
+summary{cursor:pointer;font-weight:700;font-size:15.5px;padding:19px 30px 19px 0;list-style:none;position:relative;color:var(--text)}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:22px;font-weight:300;color:var(--accent2)}
+details[open] summary::after{content:"−"}
+details p{padding:0 0 20px;color:var(--dim);font-size:14.5px;line-height:1.7}
+
+/* final slam */
+.slam-card{background:var(--hero-grad);border:1px solid var(--line2);border-top-color:var(--lift2);border-radius:32px;padding:80px 30px;text-align:center;position:relative;overflow:hidden}
+.slam-card::before{content:"";position:absolute;top:-160px;left:0;right:0;margin:0 auto;max-width:640px;height:380px;background:radial-gradient(ellipse,rgba(255,86,48,.14),transparent 65%);pointer-events:none}
+.slam-card h2{font-size:clamp(32px,5vw,54px)}
+.slam-card .sub{margin:16px auto 30px;max-width:460px;color:var(--dim);font-size:16px;line-height:1.6}
+.slam-card .cta-row{justify-content:center;margin-top:0}
+
+/* footer */
+footer{border-top:1px solid var(--line);padding:52px 0 72px;background:var(--bg2)}
+.f-grid{display:flex;flex-wrap:wrap;gap:44px;justify-content:space-between}
+.f-col{display:flex;flex-direction:column;gap:10px}
+.f-col .seclabel{margin-bottom:4px}
+.f-col a{color:var(--dim);text-decoration:none;font-size:14px}
+.f-col a:hover{color:var(--accent2)}
+.disclaimer{margin-top:40px;color:var(--faint);font-size:12px;line-height:1.7;max-width:740px}
+
+/* reveal animation */
+.js .rv{opacity:0;transform:translateY(22px);transition:opacity .7s ease,transform .7s ease}
+.js .rv.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.rv{opacity:1;transform:none;transition:none}.ember-btn{transition:none}}
+
+@media(max-width:880px){
+  section{padding:72px 0}
+  .hero{padding-top:52px}
+  .hero-grid{grid-template-columns:1fr;gap:52px;text-align:center}
+  .hero-sub{margin-left:auto;margin-right:auto}
+  .cta-row{justify-content:center}
+  .three{grid-template-columns:1fr}
+  .feat{grid-template-columns:1fr;gap:44px;text-align:center}
+  .feat .copy{order:0 !important}
+  .feat p{margin-left:auto;margin-right:auto}
+  .ticks{align-items:center}
+  .tick{text-align:left;max-width:330px}
+  .feat + .feat{margin-top:88px}
+  .plans{grid-template-columns:1fr}
+  .phone{width:308px}
+  .feat .phone{width:290px}
+}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6" fill="currentColor"/><g stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><path d="M12 1.8v3M12 19.2v3M1.8 12h3M19.2 12h3M4.6 4.6l2.1 2.1M17.3 17.3l2.1 2.1M19.4 4.6l-2.1 2.1M6.7 17.3l-2.1 2.1"/></g></symbol>
+<symbol id="i-cafe" viewBox="0 0 24 24"><path fill="currentColor" d="M4 8h13v8.5A3.5 3.5 0 0 1 13.5 20h-6A3.5 3.5 0 0 1 4 16.5Zm13 1.6h1.4a2.8 2.8 0 1 1 0 5.6H17ZM6 3.6c1.4 1 .3 2 .3 3M9.6 3.6c1.4 1 .3 2 .3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill-rule="evenodd"/></symbol>
+<symbol id="i-moon" viewBox="0 0 24 24"><path fill="currentColor" d="M20.4 14.6A8.8 8.8 0 0 1 9.4 3.6 8.9 8.9 0 1 0 20.4 14.6Z"/></symbol>
+<symbol id="i-flash" viewBox="0 0 24 24"><path fill="currentColor" d="M13.6 2 4.8 13.4h5.2L10.4 22l8.8-11.4H14Z"/></symbol>
+<symbol id="i-heart" viewBox="0 0 24 24"><path fill="currentColor" d="M12 20.6S3.4 15.2 3.4 9.4A4.7 4.7 0 0 1 12 6.7a4.7 4.7 0 0 1 8.6 2.7c0 5.8-8.6 11.2-8.6 11.2Z"/></symbol>
+<symbol id="i-steps" viewBox="0 0 24 24"><path fill="currentColor" d="M8.2 2.8c1.9-.4 3 1 3.3 3 .3 1.8-.2 3.3-1.8 3.6S7 8.6 6.6 6.8c-.4-1.9.1-3.7 1.6-4Zm2 8.6c.5 1.6-.1 2.8-1.5 3.1-1.4.3-2.4-.5-2.8-2ZM16.9 8c1.5.3 2 2.1 1.6 4-.4 1.8-1.5 2.9-3.1 2.6s-2.1-1.8-1.8-3.6c.3-2 1.4-3.4 3.3-3Zm1 8.7c-.4 1.5-1.4 2.3-2.8 2-1.4-.3-2-1.5-1.5-3.1Z"/></symbol>
+<symbol id="i-scale" viewBox="0 0 24 24"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M8 10.6a4.4 4.4 0 0 1 8 0l-2.1-.9a2.6 2.6 0 0 0-3.8 0Z" fill="currentColor"/></symbol>
+<symbol id="i-bodyfat" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M12 3.6A8.4 8.4 0 0 1 20.4 12H12Z" fill="currentColor"/></symbol>
+<symbol id="i-flask" viewBox="0 0 24 24"><path fill="currentColor" d="M9.4 3h5.2v1.8l-1 .5v4.2l4.9 8.2a2 2 0 0 1-1.7 3H7.2a2 2 0 0 1-1.7-3l4.9-8.2V5.3l-1-.5Zm.4 10.3-2 3.4h8.4l-2-3.4Z"/></symbol>
+<symbol id="i-flame" viewBox="0 0 24 24"><path fill="currentColor" d="M12.3 2.2s.9 3-1.4 5.7c-2 2.4-4.3 4-4.3 7.2A5.9 5.9 0 0 0 12.4 21a6.2 6.2 0 0 0 6-6.3c0-4.5-3.5-5.9-3.5-9.3-1.6.7-2.4 2.5-2.2 4.3-1.1-.9-1.6-4.4-.4-7.5Z"/></symbol>
+<symbol id="i-chat" viewBox="0 0 24 24"><path fill="currentColor" d="M12 3C6.9 3 2.8 6.6 2.8 11.1a7.6 7.6 0 0 0 2 5.1c.2.2.2.4.2.6l-.4 3a.8.8 0 0 0 1.1.8l2.9-1.2a1 1 0 0 1 .7 0 11 11 0 0 0 2.7.3c5.1 0 9.2-3.6 9.2-8.1S17.1 3 12 3Z"/></symbol>
+</defs></svg>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="#top"><span class="avatar">ΛBC</span><b>Animal Based Coach</b></a>
+    <a class="nav-cta" href="https://apps.apple.com/us/app/animal-based-coach/id6790187451">Download free</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap hero-grid">
+    <div>
+      <span class="pill">✦&nbsp; Your AI nutrition coach · iOS</span>
+      <h1 style="margin-top:22px">A diet built from <span class="a2">your data.</span><br>Not someone else's averages.</h1>
+      <p class="hero-sub">Animal Based Coach builds your <b>personalized animal-based plan</b>, reads your real numbers — <b>sleep, HRV, weight</b> — through Apple Health, and sharpens the plan every single week. Results on autopilot.</p>
+      <div class="cta-row">
+        <a class="ember-btn" href="https://apps.apple.com/us/app/animal-based-coach/id6790187451">Get your free plan
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+        <span class="store-note"><svg viewBox="0 0 384 512"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 49.9-11.4 69.5-34.3z"/></svg>On the App Store</span>
+      </div>
+      <p class="trust">Free plan today &nbsp;·&nbsp; 14-day free trial of Pro &nbsp;·&nbsp; No card to start</p>
+    </div>
+
+    <!-- THE APP, FAITHFULLY: the Today screen -->
+    <div class="phone rv">
+      <div class="screen">
+        <div class="island"></div>
+        <div class="stat"><span>9:41</span><span class="sig"><i></i></span></div>
+        <div class="s-head">
+          <div><div class="s-title">Today</div><div class="s-sub">Monday, July 27</div></div>
+          <div class="s-ava">Λ</div>
+        </div>
+        <div class="s-body">
+          <div class="t-banner"><span class="spark">✦</span><b>Free trial · 9 days left</b><u>Manage</u></div>
+          <div class="h-card">
+            <div class="ring"><div><b>12</b><span>DAYS</span></div></div>
+            <div class="h-right">
+              <b>Ready when you are</b>
+              <p>30 seconds keeps your streak alive.</p>
+              <span class="mini-cta">Check in →</span>
+            </div>
+          </div>
+          <div class="a-card">
+            <div class="a-head">
+              <div class="a-left"><span class="a-title">Action</span><span class="note-chip"><svg><use href="#i-flame"/></svg>2,410 kcal · 205g P</span></div>
+              <span class="adjust">Adjust <svg><use href="#i-chat"/></svg></span>
+            </div>
+            <div class="meals">
+              <div class="meal b"><h5>BREAKFAST</h5><div class="mi"><i></i><span>4 eggs in butter</span></div><div class="mi"><i></i><span>Greek yogurt + honey</span></div></div>
+              <div class="meal l"><h5>LUNCH</h5><div class="mi"><i></i><span>Ribeye, 10 oz</span></div><div class="mi"><i></i><span>White rice + fruit</span></div></div>
+              <div class="meal d"><h5>DINNER</h5><div class="mi"><i></i><span>Ground beef, 8 oz</span></div><div class="mi"><i></i><span>Sweet potato + milk</span></div></div>
+            </div>
+            <div class="a-div"></div>
+            <div class="ess">
+              <div><span class="ic" style="background:rgba(231,177,92,.13);color:var(--gold)"><svg><use href="#i-sun"/></svg></span><b>Morning sun</b><span>Within 30 min of waking</span></div>
+              <div><span class="ic" style="background:rgba(255,86,48,.13);color:var(--accent)"><svg><use href="#i-cafe"/></svg></span><b>Last coffee</b><span>Cut caffeine by ~2 PM</span></div>
+              <div><span class="ic" style="background:rgba(107,166,245,.13);color:var(--blue)"><svg><use href="#i-moon"/></svg></span><b>Wind down</b><span>Screens off by 10:30</span></div>
+            </div>
+            <div class="s-disc">General wellness guidance, not medical advice.</div>
+          </div>
+          <div class="p-card">
+            <div class="p-head"><div><b>Progress</b><span>Since you started</span></div><span class="chev">›</span></div>
+            <div class="p-row">
+              <div class="p-tile"><span class="p-ic" style="background:rgba(255,178,58,.16);color:var(--amber)"><svg><use href="#i-flash"/></svg></span><div class="p-val" style="color:var(--success)">4.2/5</div><div class="p-lbl">ENERGY</div><div class="p-dlt" style="color:var(--success)">+0.8</div><div class="p-why">Up since cutting seed oils</div></div>
+              <div class="p-tile"><span class="p-ic" style="background:rgba(255,107,107,.16);color:var(--chart-red)"><svg><use href="#i-heart"/></svg></span><div class="p-val" style="color:var(--success)">62 ms</div><div class="p-lbl">HRV</div><div class="p-dlt" style="color:var(--success)">+9 ms</div><div class="p-why">Climbing 3 weeks straight</div></div>
+              <div class="p-tile"><span class="p-ic" style="background:rgba(90,162,255,.16);color:var(--chart-blue)"><svg><use href="#i-moon"/></svg></span><div class="p-val" style="color:var(--success)">7h 41m</div><div class="p-lbl">SLEEP</div><div class="p-dlt" style="color:var(--success)">+32 min</div><div class="p-why">Deeper since earlier dinners</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="tabs">
+          <div class="tab on"><svg viewBox="0 0 512 512"><path d="M261.56 101.28a8 8 0 00-11.06 0L66.4 277.15a8 8 0 00-2.47 5.79L63.9 448a32 32 0 0032 32H192a16 16 0 0016-16V328a8 8 0 018-8h80a8 8 0 018 8v136a16 16 0 0016 16h96.06a32 32 0 0032-32V282.94a8 8 0 00-2.47-5.79z"/><path d="M490.91 244.15l-74.8-71.56V64a16 16 0 00-16-16h-48a16 16 0 00-16 16v32l-57.92-55.38C272.77 35.14 264.71 32 256 32c-8.68 0-16.72 3.14-22.14 8.63l-212.7 203.5c-6.22 6-7 15.87-1.34 22.37A16 16 0 0043 267.56L250.5 69.28a8 8 0 0111.06 0l207.52 198.28a16 16 0 0022.59-.44c6.14-6.36 5.63-16.86-.76-22.97z"/></svg>Today</div>
+          <div class="tab"><svg viewBox="0 0 512 512"><path d="M60.44 389.17c0 .07 0 .13-.07.21s.11-.14.07-.21zM439.9 405.6a26.77 26.77 0 01-9.59-2l-56.78-20.13-.42-.17a9.88 9.88 0 00-3.91-.76 10.32 10.32 0 00-3.62.66c-1.38.52-13.81 5.19-26.85 8.77-7.07 1.94-31.68 8.27-51.43 8.27-50.48 0-97.68-19.4-132.89-54.63A183.38 183.38 0 01100.3 215.1a175.9 175.9 0 0122.06-85.25C160.18 62.53 226.06 24 256.85 24c33.26 0 66.32 13.6 93.1 38.3 28.3 26.1 45.65 61.9 45.65 100.05 0 20.4-4.15 40.7-12.35 60.3a8 8 0 00-.4 5.15l18.75 66.15a26.6 26.6 0 01-25.7 33.65z" opacity=".4"/><path d="M256 32C132.3 32 32 125.9 32 241.6c0 41.8 13.9 82.5 39.6 116.7 3.5 4.7 5.3 10.4 4.9 16.3l-4.4 55.6a16 16 0 0021 16.4l52.4-18.7a16.1 16.1 0 0111.2.2c31.5 12.6 65.1 19.1 99.3 19.1 123.7 0 224-93.9 224-209.6S379.7 32 256 32z"/></svg>Coach</div>
+          <div class="tab"><svg viewBox="0 0 512 512"><path d="M104 496H72a24 24 0 01-24-24V328a24 24 0 0124-24h32a24 24 0 0124 24v144a24 24 0 01-24 24zM328 496h-32a24 24 0 01-24-24V232a24 24 0 0124-24h32a24 24 0 0124 24v240a24 24 0 01-24 24zM440 496h-32a24 24 0 01-24-24V120a24 24 0 0124-24h32a24 24 0 0124 24v352a24 24 0 01-24 24zM216 496h-32a24 24 0 01-24-24V152a24 24 0 0124-24h32a24 24 0 0124 24v320a24 24 0 01-24 24z"/></svg>Progress</div>
+          <div class="tab"><svg viewBox="0 0 512 512"><path d="M357.57 223.94a79.48 79.48 0 0056.58-23.44l77-76.95c6.09-6.09 6.65-16 .85-22.39a16 16 0 00-23.17-.56l-68.63 68.58a12.29 12.29 0 01-17.37 0c-4.79-4.78-4.53-12.86.25-17.64l68.33-68.33a16 16 0 00-.56-23.16A15.62 15.62 0 00440.27 56a16.71 16.71 0 00-11.81 4.9l-68.27 68.26a12.29 12.29 0 01-17.37 0c-4.78-4.78-4.53-12.86.25-17.64L411.4 43.21a16 16 0 00-.56-23.16A15.62 15.62 0 00400.26 16a16.73 16.73 0 00-11.81 4.9L311.5 97.85a79.49 79.49 0 00-23.44 56.59v8.23a16 16 0 01-4.69 11.33l-35.61 35.62a4 4 0 01-5.66 0L68.82 36.33a16 16 0 00-22.58-.06C31.09 51.28 24 72.47 24 96c0 30.16 10.14 55.44 30.14 75.14l86.07 86.07 41.31 41.3a4 4 0 010 5.66l-90.31 90.31a48 48 0 1067.9 67.9l90.31-90.3a4 4 0 015.65 0l90.31 90.3a48 48 0 1067.9-67.9L322.9 304.17a4 4 0 010-5.66l35.61-35.61a16 16 0 0111.33-4.69z"/></svg>Diet</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">The Big 3</span>
+      <h2>Big <em>and</em> healthy. Food is the lever.</h2>
+      <p class="sec-sub">Bodybuilding without the downsides — the acne, the 3&nbsp;PM crash, the bad bloodwork. Every meal in your plan ladders to three things:</p>
+    </div>
+    <div class="three">
+      <div class="appcard b3 rv">
+        <span class="ic" style="background:rgba(255,86,48,.14);color:var(--accent)"><svg><use href="#i-flame"/></svg></span>
+        <h3>Testosterone</h3>
+        <p>Faster progress, drive, edge. Meals portioned to your hormones — not just a calorie target.</p>
+      </div>
+      <div class="appcard b3 rv">
+        <span class="ic" style="background:rgba(255,178,58,.16);color:var(--amber)"><svg><use href="#i-flash"/></svg></span>
+        <h3>Energy</h3>
+        <p>No post-gym fog, no afternoon crash. Steady all-day output from food that actually runs your engine.</p>
+      </div>
+      <div class="appcard b3 rv">
+        <span class="ic" style="background:rgba(72,201,141,.14);color:var(--success)"><svg><use href="#i-heart"/></svg></span>
+        <h3>Health</h3>
+        <p>Clear skin, clean bloodwork, rarely sick. And the app proves it's working in your own numbers.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:24px">
+  <div class="wrap">
+
+    <div class="feat rv">
+      <div class="copy">
+        <span class="eyebrow">The Coach</span>
+        <h3>A coach in your pocket that already knows your data.</h3>
+        <p>Ask it anything, day or night. It knows your goal, your meals, last night's sleep and this morning's HRV — so the answer fits <b>you</b>, not a template. Want the plan changed? Say so. It re-portions the week on the spot.</p>
+        <div class="ticks">
+          <div class="tick"><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Answers in seconds, grounded in your numbers</div>
+          <div class="tick"><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Adjusts your diet without starting over</div>
+          <div class="tick"><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Cites the research behind its advice</div>
+        </div>
+      </div>
+      <div class="phone">
+        <div class="screen">
+          <div class="island"></div>
+          <div class="stat"><span>9:41</span><span class="sig"><i></i></span></div>
+          <div class="s-head"><div><div class="s-title">Coach</div><div class="s-sub">Knows today's context</div></div><div class="s-ava">Λ</div></div>
+          <div class="chat">
+            <div class="c-user">Craving something sweet tonight — what fits my macros?</div>
+            <div class="c-ai"><span class="c-spark">Λ</span><p>Greek yogurt with honey and a pinch of salt — <b>28g protein</b>, and it fits the 205g target with room to spare. You slept 7h 41m, so skip the chocolate: caffeine this late costs you deep sleep.</p></div>
+            <div class="c-user">Deal. Can we bump breakfast protein?</div>
+            <div class="c-ai"><span class="c-spark">Λ</span><p>Done — eggs go from 3 to 4 and I moved yogurt to the morning. <b>Week re-portioned.</b></p></div>
+            <div class="typing"><i></i><i></i><i></i></div>
+          </div>
+          <div class="composer"><span class="ph">Ask your coach anything…</span><span class="send">↑</span></div>
+          <div class="tabs">
+            <div class="tab"><svg viewBox="0 0 512 512"><path d="M261.56 101.28a8 8 0 00-11.06 0L66.4 277.15a8 8 0 00-2.47 5.79L63.9 448a32 32 0 0032 32H192a16 16 0 0016-16V328a8 8 0 018-8h80a8 8 0 018 8v136a16 16 0 0016 16h96.06a32 32 0 0032-32V282.94a8 8 0 00-2.47-5.79z"/></svg>Today</div>
+            <div class="tab on"><svg viewBox="0 0 512 512"><path d="M256 32C132.3 32 32 125.9 32 241.6c0 41.8 13.9 82.5 39.6 116.7 3.5 4.7 5.3 10.4 4.9 16.3l-4.4 55.6a16 16 0 0021 16.4l52.4-18.7a16.1 16.1 0 0111.2.2c31.5 12.6 65.1 19.1 99.3 19.1 123.7 0 224-93.9 224-209.6S379.7 32 256 32z"/></svg>Coach</div>
+            <div class="tab"><svg viewBox="0 0 512 512"><path d="M104 496H72a24 24 0 01-24-24V328a24 24 0 0124-24h32a24 24 0 0124 24v144a24 24 0 01-24 24zM328 496h-32a24 24 0 01-24-24V232a24 24 0 0124-24h32a24 24 0 0124 24v240a24 24 0 01-24 24zM440 496h-32a24 24 0 01-24-24V120a24 24 0 0124-24h32a24 24 0 0124 24v352a24 24 0 01-24 24zM216 496h-32a24 24 0 01-24-24V152a24 24 0 0124-24h32a24 24 0 0124 24v320a24 24 0 01-24 24z"/></svg>Progress</div>
+            <div class="tab"><svg viewBox="0 0 512 512"><path d="M357.57 223.94a79.48 79.48 0 0056.58-23.44l77-76.95c6.09-6.09 6.65-16 .85-22.39a16 16 0 00-23.17-.56l-68.63 68.58a12.29 12.29 0 01-17.37 0c-4.79-4.78-4.53-12.86.25-17.64l68.33-68.33a16 16 0 00-.56-23.16A15.62 15.62 0 00440.27 56a16.71 16.71 0 00-11.81 4.9l-68.27 68.26a12.29 12.29 0 01-17.37 0c-4.78-4.78-4.53-12.86.25-17.64L411.4 43.21a16 16 0 00-.56-23.16A15.62 15.62 0 00400.26 16a16.73 16.73 0 00-11.81 4.9L311.5 97.85a79.49 79.49 0 00-23.44 56.59v8.23a16 16 0 01-4.69 11.33l-35.61 35.62a4 4 0 01-5.66 0L68.82 36.33a16 16 0 00-22.58-.06C31.09 51.28 24 72.47 24 96c0 30.16 10.14 55.44 30.14 75.14l86.07 86.07 41.31 41.3a4 4 0 010 5.66l-90.31 90.31a48 48 0 1067.9 67.9l90.31-90.3a4 4 0 015.65 0l90.31 90.3a48 48 0 1067.9-67.9L322.9 304.17a4 4 0 010-5.66l35.61-35.61a16 16 0 0111.33-4.69z"/></svg>Diet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="feat flip rv">
+      <div class="copy">
+        <span class="eyebrow">The Weekly Verdict</span>
+        <h3>It tells you what actually worked. And what was noise.</h3>
+        <p>Every week the app runs the numbers and hands you a verdict: which changes moved your sleep, HRV and weight — and which did nothing. Then it runs <b>two-week experiments</b> on your own body: change one thing, measure what moves. What works stays. What doesn't gets cut.</p>
+        <div class="ticks">
+          <div class="tick"><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Real change vs. noise, called honestly</div>
+          <div class="tick"><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>The plan re-portions itself from the verdict</div>
+          <div class="tick"><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>A gap in your data stays a gap — nothing is faked</div>
+        </div>
+      </div>
+      <div class="phone">
+        <div class="screen">
+          <div class="island"></div>
+          <div class="stat"><span>9:41</span><span class="sig"><i></i></span></div>
+          <div class="s-head"><div><div class="s-title">Progress</div><div class="s-sub">Week 4</div></div><div class="s-ava">Λ</div></div>
+          <div class="s-body">
+            <div class="a-card">
+              <div class="v-eyebrow">WEEKLY VERDICT</div>
+              <div class="v-line">Sleep is your lever — energy follows it by a day.</div>
+              <div class="movers">
+                <div class="mover"><b style="color:var(--success)">+38m</b><span>SLEEP</span><i style="color:var(--success)">real</i></div>
+                <div class="mover"><b style="color:var(--success)">+6 ms</b><span>HRV</span><i style="color:var(--success)">real</i></div>
+                <div class="mover"><b style="color:var(--success)">−1.8 lb</b><span>WEIGHT</span><i style="color:var(--success)">on pace</i></div>
+              </div>
+              <div class="noise">
+                <div><span>Dinner before 8 PM</span><b class="real">−11% wakeups · real</b></div>
+                <div><span>Cold showers</span><b class="ns">no signal · noise</b></div>
+              </div>
+              <div class="exp-chip"><svg><use href="#i-flask"/></svg><b>Experiment: no food after 8 PM</b><span>DAY 9/14</span></div>
+            </div>
+            <div class="p-card">
+              <div class="p-head"><div><b>Vitals</b><span>Today's readings</span></div><span class="chev">›</span></div>
+              <div class="p-row">
+                <div class="p-tile"><span class="p-ic" style="background:rgba(255,107,107,.16);color:var(--chart-red)"><svg><use href="#i-heart"/></svg></span><div class="p-val">62 ms</div><div class="p-lbl">HRV</div><div class="p-dlt" style="color:var(--success)">+9 ms</div></div>
+                <div class="p-tile"><span class="p-ic" style="background:rgba(90,162,255,.16);color:var(--chart-blue)"><svg><use href="#i-moon"/></svg></span><div class="p-val">7h 41m</div><div class="p-lbl">SLEEP</div><div class="p-dlt" style="color:var(--success)">+32 min</div></div>
+                <div class="p-tile"><span class="p-ic" style="background:rgba(72,201,141,.16);color:var(--mint)"><svg><use href="#i-steps"/></svg></span><div class="p-val">9,204</div><div class="p-lbl">STEPS</div><div class="p-dlt" style="color:var(--dim)">steady</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="tabs">
+            <div class="tab"><svg viewBox="0 0 512 512"><path d="M261.56 101.28a8 8 0 00-11.06 0L66.4 277.15a8 8 0 00-2.47 5.79L63.9 448a32 32 0 0032 32H192a16 16 0 0016-16V328a8 8 0 018-8h80a8 8 0 018 8v136a16 16 0 0016 16h96.06a32 32 0 0032-32V282.94a8 8 0 00-2.47-5.79z"/></svg>Today</div>
+            <div class="tab"><svg viewBox="0 0 512 512"><path d="M256 32C132.3 32 32 125.9 32 241.6c0 41.8 13.9 82.5 39.6 116.7 3.5 4.7 5.3 10.4 4.9 16.3l-4.4 55.6a16 16 0 0021 16.4l52.4-18.7a16.1 16.1 0 0111.2.2c31.5 12.6 65.1 19.1 99.3 19.1 123.7 0 224-93.9 224-209.6S379.7 32 256 32z"/></svg>Coach</div>
+            <div class="tab on"><svg viewBox="0 0 512 512"><path d="M104 496H72a24 24 0 01-24-24V328a24 24 0 0124-24h32a24 24 0 0124 24v144a24 24 0 01-24 24zM328 496h-32a24 24 0 01-24-24V232a24 24 0 0124-24h32a24 24 0 0124 24v240a24 24 0 01-24 24zM440 496h-32a24 24 0 01-24-24V120a24 24 0 0124-24h32a24 24 0 0124 24v352a24 24 0 01-24 24zM216 496h-32a24 24 0 01-24-24V152a24 24 0 0124-24h32a24 24 0 0124 24v320a24 24 0 01-24 24z"/></svg>Progress</div>
+            <div class="tab"><svg viewBox="0 0 512 512"><path d="M357.57 223.94a79.48 79.48 0 0056.58-23.44l77-76.95c6.09-6.09 6.65-16 .85-22.39a16 16 0 00-23.17-.56l-68.63 68.58a12.29 12.29 0 01-17.37 0c-4.79-4.78-4.53-12.86.25-17.64l68.33-68.33a16 16 0 00-.56-23.16A15.62 15.62 0 00440.27 56a16.71 16.71 0 00-11.81 4.9l-68.27 68.26a12.29 12.29 0 01-17.37 0c-4.78-4.78-4.53-12.86.25-17.64L411.4 43.21a16 16 0 00-.56-23.16A15.62 15.62 0 00400.26 16a16.73 16.73 0 00-11.81 4.9L311.5 97.85a79.49 79.49 0 00-23.44 56.59v8.23a16 16 0 01-4.69 11.33l-35.61 35.62a4 4 0 01-5.66 0L68.82 36.33a16 16 0 00-22.58-.06C31.09 51.28 24 72.47 24 96c0 30.16 10.14 55.44 30.14 75.14l86.07 86.07 41.31 41.3a4 4 0 010 5.66l-90.31 90.31a48 48 0 1067.9 67.9l90.31-90.3a4 4 0 015.65 0l90.31 90.3a48 48 0 1067.9-67.9L322.9 304.17a4 4 0 010-5.66l35.61-35.61a16 16 0 0111.33-4.69z"/></svg>Diet</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section style="padding-top:20px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">Apple Health · Autopilot</span>
+      <h2>Connect Health once.<br>Then stop typing numbers.</h2>
+      <p class="sec-sub">The app reads seven metrics automatically and keeps them fresh while you use it. Read-only, always — nothing is ever written back to Health.</p>
+    </div>
+    <div class="metrics rv">
+      <span class="metric" style="color:var(--text)"><svg style="color:var(--chart-blue)"><use href="#i-moon"/></svg>Sleep</span>
+      <span class="metric"><svg style="color:var(--chart-red)"><use href="#i-heart"/></svg>HRV</span>
+      <span class="metric"><svg style="color:var(--accent)"><use href="#i-heart"/></svg>Resting heart rate</span>
+      <span class="metric"><svg style="color:var(--mint)"><use href="#i-steps"/></svg>Steps</span>
+      <span class="metric"><svg style="color:var(--gold)"><use href="#i-scale"/></svg>Weight</span>
+      <span class="metric"><svg style="color:var(--purple)"><use href="#i-bodyfat"/></svg>Body fat</span>
+      <span class="metric"><svg style="color:var(--amber)"><use href="#i-flash"/></svg>Active energy</span>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">The math</span>
+      <h2>A dietician charges $150 an hour.<br>Yours is free.</h2>
+    </div>
+    <div class="appcard receipt-card rv">
+      <div class="r-row"><span>Dietician</span><b>$150 / hr</b></div>
+      <div class="r-row"><span>Human coaching</span><b>$300 / mo</b></div>
+      <div class="r-row"><span>Bloodwork consult</span><b>$400</b></div>
+      <div class="r-row last"><span>Animal Based Coach</span><b>Free today</b></div>
+      <p class="r-foot">Everything above, in one place, portioned to your body — free to start.</p>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">Pricing</span>
+      <h2>Free to start. Simple after.</h2>
+    </div>
+    <div class="plans">
+      <div class="appcard plan rv">
+        <h3>FREE</h3>
+        <div class="price">$0</div>
+        <div class="per">Download + your plan today</div>
+        <ul>
+          <li><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Personalized animal-based plan for your goal</li>
+          <li><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Day-one meals and macros in about a minute</li>
+          <li><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>No card required</li>
+        </ul>
+        <a class="ghost-btn" href="https://apps.apple.com/us/app/animal-based-coach/id6790187451">Download free</a>
+      </div>
+      <div class="appcard plan pro rv">
+        <span class="tag pill">✦&nbsp; 14-day free trial</span>
+        <h3>PRO</h3>
+        <div class="price">$14.99<span>/mo</span></div>
+        <div class="per">or $149.99 / year</div>
+        <ul>
+          <li><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>The AI coach — answers anything, knows your data</li>
+          <li><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Apple Health autopilot — 7 metrics, read-only</li>
+          <li><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>Two-week experiments + your Weekly Verdict</li>
+          <li><svg viewBox="0 0 512 512" fill="var(--success)"><path d="M256 48C141.31 48 48 141.31 48 256s93.31 208 208 208 208-93.31 208-208S370.69 48 256 48zm108.25 138.29l-134.4 160a16 16 0 01-12 5.71h-.27a16 16 0 01-11.89-5.3l-57.6-64a16 16 0 1123.78-21.4l45.29 50.32 122.59-145.91a16 16 0 0124.5 20.58z"/></svg>A plan that re-portions itself every week</li>
+        </ul>
+        <a class="ember-btn" href="https://apps.apple.com/us/app/animal-based-coach/id6790187451">Start free trial</a>
+        <p class="fine">Billed through Apple. Auto-renews unless cancelled at least 24h before the period ends — manage or cancel anytime in your Apple account settings.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:16px">
+  <div class="wrap">
+    <div class="sec-head rv">
+      <span class="eyebrow">Questions</span>
+      <h2>Straight answers.</h2>
+    </div>
+    <div class="faq rv">
+      <details>
+        <summary>What does "animal-based" actually mean?</summary>
+        <p>Nutrient-dense animal foods — steak, eggs, dairy — plus easy carbs like fruit and honey. No seed oils, no ultra-processed filler. It's not zero-carb and it's not a starvation diet: it's eating what your body was built to run on.</p>
+      </details>
+      <details>
+        <summary>Is it really free?</summary>
+        <p>Yes — the download is free and you get your personalized plan today, no card required. Pro (the coach, Apple Health autopilot, experiments and Weekly Verdicts) has a 14-day free trial, then $14.99/month or $149.99/year through Apple.</p>
+      </details>
+      <details>
+        <summary>Do I need an Apple Watch?</summary>
+        <p>No — just an iPhone. Connect Apple Health once and the app reads whatever your phone already collects: sleep, steps, weight and more. A watch adds HRV and resting heart rate depth, but it's optional. Everything is read-only.</p>
+      </details>
+      <details>
+        <summary>Will it fake numbers to keep me motivated?</summary>
+        <p>Never. If you didn't weigh in, that day stays blank — a gap is honest. The Weekly Verdict only reads numbers you actually logged or Apple Health actually measured, and it will tell you when a change was noise rather than progress.</p>
+      </details>
+      <details>
+        <summary>Is this medical advice?</summary>
+        <p>No. Animal Based Coach provides general nutrition and lifestyle information for educational purposes only. It doesn't diagnose or treat anything — always talk to your physician about what's right for you.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top:8px">
+  <div class="wrap">
+    <div class="slam-card rv">
+      <span class="eyebrow">The Animal Based Coach</span>
+      <h2 style="margin-top:14px">Stop guessing.<br>Start knowing.</h2>
+      <p class="sub">Your personalized plan is one minute away — free to download, free plan today.</p>
+      <div class="cta-row">
+        <a class="ember-btn" href="https://apps.apple.com/us/app/animal-based-coach/id6790187451">Download free on the App Store
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M2 8h10M8 3l5 5-5 5" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </a>
+      </div>
+      <p class="trust" style="margin-top:22px">iPhone · Free plan today · 14-day free trial of Pro</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="f-grid">
+      <div class="f-col">
+        <a class="brand" href="#top"><span class="avatar">ΛBC</span><b>Animal Based Coach</b></a>
+        <a href="https://apps.apple.com/us/app/animal-based-coach/id6790187451" style="margin-top:6px">Download the app</a>
+      </div>
+      <div class="f-col">
+        <span class="seclabel">Follow</span>
+        <a href="https://www.instagram.com/theanimalbasedcoach" rel="noopener">Instagram — @theanimalbasedcoach</a>
+        <a href="https://www.tiktok.com/@animalbasedcoaching" rel="noopener">TikTok — @animalbasedcoaching</a>
+        <a href="https://www.youtube.com/@AnimalBasedCoach" rel="noopener">YouTube — AnimalBasedCoach</a>
+      </div>
+      <div class="f-col">
+        <span class="seclabel">Legal</span>
+        <a href="https://carterpace26.github.io/animal-based-coach-legal/privacy.html">Privacy policy</a>
+        <a href="https://carterpace26.github.io/animal-based-coach-legal/terms.html">Terms of use</a>
+        <a href="https://carterpace26.github.io/animal-based-coach-legal/support.html">Support</a>
+      </div>
+    </div>
+    <p class="disclaimer">Animal Based Coach provides general nutrition and lifestyle information for educational purposes only and is not medical advice, diagnosis or treatment. Always seek the advice of your physician or another qualified health provider with any questions you may have. App screens shown are illustrative. Apple, the Apple logo and App Store are trademarks of Apple Inc. © 2026 Animal Based Coach.</p>
+  </div>
+</footer>
+
+<script>
+document.documentElement.classList.add('js');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}}),{threshold:.12});
+document.querySelectorAll('.rv').forEach(el=>io.observe(el));
+</script>
+</body>
+</html>
